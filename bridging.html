@@ -8,9 +8,7 @@
 <h1>This is a Heading</h1>
 <p>This is a paragraph.</p>
 <div id="markdown"></div>
-
-</body>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
   fetch('bridging.md') // or the raw GitHub URL
     .then(res => res.text())
@@ -18,4 +16,6 @@
       document.getElementById('markdown').innerHTML = marked.parse(text);
     });
 </script>
+</body>
+ 
 </html>
