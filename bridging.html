@@ -10,7 +10,7 @@
 <div id="markdown"></div>
  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-  fetch('bridging.md') // or the raw GitHub URL
+  fetch('https://alimohammadiok.github.io/bridging.md') // or the raw GitHub URL
     .then(res => res.text())
     .then(text => {
       document.getElementById('markdown').innerHTML = marked.parse(text);
