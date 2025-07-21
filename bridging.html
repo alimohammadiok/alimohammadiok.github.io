@@ -1,20 +1,94 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Page Title</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script>
-  fetch('https://raw.githubusercontent.com/alimohammadiok/alimohammadiok.github.io/main/bridging.md') // or the raw GitHub URL
-    .then(res => res.text())
-    .then(text => {
-      document.getElementById('markdown').innerHTML = marked.parse(text);
-    });
-</script>
-</head>
-<body>
+<p class="has-line-data" data-line-start="0" data-line-end="1">This is a Bridging Challenge <a href="https://reactnative.dev"><strong>React Native</strong></a> project.</p>
+<h1 class="code-line" data-line-start=2 data-line-end=3 ><a id="Getting_started_2"></a>Getting started</h1>
+<ol>
+<li class="has-line-data" data-line-start="3" data-line-end="5">The React Native (JavaScript) Side</li>
+</ol>
+<pre><code class="has-line-data" data-line-start="6" data-line-end="26" class="language-js"><span class="hljs-comment">// App.js (simplified)</span>
+<span class="hljs-keyword">import</span> { NativeModules, TouchableOpacity, Text } <span class="hljs-keyword">from</span> <span class="hljs-string">'react-native'</span>;
 
-<div id="markdown"></div>
+<span class="hljs-keyword">const</span> { AlertModule } = NativeModules; <span class="hljs-comment">// (1) Get a reference to our native module</span>
 
-</body>
- 
-</html>
+<span class="hljs-keyword">const</span> App = () =&gt; {
+  <span class="hljs-keyword">const</span> handlePress = () =&gt; {
+    <span class="hljs-comment">// (2) Call the exposed native method</span>
+    <span class="hljs-keyword">if</span> (AlertModule &amp;&amp; AlertModule.showNativeAlert) {
+      AlertModule.showNativeAlert(<span class="hljs-string">"Hello from Kotlin!"</span>); <span class="hljs-comment">// (3) Pass data to native</span>
+    }
+  };
+
+  <span class="hljs-keyword">return</span> (
+    <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-title">TouchableOpacity</span> <span class="hljs-attribute">onPress</span>=<span class="hljs-value">{handlePress}</span>&gt;</span> // (4) User presses button
+      <span class="hljs-tag">&lt;<span class="hljs-title">Text</span>&gt;</span>Show Native Alert<span class="hljs-tag">&lt;/<span class="hljs-title">Text</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-title">TouchableOpacity</span>&gt;</span>
+  )</span>;
+};
+</code></pre>
+<p class="has-line-data" data-line-start="26" data-line-end="27"><strong>What happens here:</strong></p>
+<p class="has-line-data" data-line-start="28" data-line-end="29">a) <code>Const { AlertModule } = NativeModules;</code></p>
+<p class="has-line-data" data-line-start="30" data-line-end="32">When your react native app starts, it initializes a bridge. Part of this initialization involves discovering all the <strong>Native Modules</strong> that have been registered on the Native side (will be done on the next steps)<br>
+<strong>Native Modules</strong> is a javascript Object that holds references to all these discovered <a href="http://modules.By">modules.By</a> destructuring <strong>AlertModule</strong> form <strong>NativeModule</strong> , you are getting a js object that represents your native Koltin module.</p>
+<p class="has-line-data" data-line-start="33" data-line-end="34"><code>AlertModule.ShowNativeAlert('Hello from Koltin);</code></p>
+<p class="has-line-data" data-line-start="35" data-line-end="36">This is the magic line!</p>
+<ul>
+<li class="has-line-data" data-line-start="37" data-line-end="38">The javascript code calls a method (<code>showNativeAlert</code>) on the <code>AlertModule</code> object.</li>
+<li class="has-line-data" data-line-start="38" data-line-end="39">Since the <code>AlertModule</code> is a <strong>bridging Module</strong> , this isn’t a regular js function call. Instead, React Native’s <strong>javascript bridge</strong> intercepts this call.</li>
+<li class="has-line-data" data-line-start="39" data-line-end="41">The string <code>&quot;Hello from Koltin&quot;</code> is passed as an argument across the bridge.</li>
+</ul>
+<p class="has-line-data" data-line-start="41" data-line-end="42"><strong>3) Android/Koltin side - receiving the call</strong></p>
+<pre><code class="has-line-data" data-line-start="44" data-line-end="65" class="language-js"><span class="hljs-comment">// AlertModule.kt (simplified)</span>
+package com.mykotlinalertapp <span class="hljs-comment">// Your package name</span>
+
+<span class="hljs-keyword">import</span> com.facebook.react.bridge.ReactApplicationContext
+<span class="hljs-keyword">import</span> com.facebook.react.bridge.ReactContextBaseJavaModule
+<span class="hljs-keyword">import</span> com.facebook.react.bridge.ReactMethod
+<span class="hljs-keyword">import</span> android.widget.Toast
+
+class AlertModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+
+    override fun getName(): String {
+        return <span class="hljs-string">"AlertModule"</span> // (A) This name matches the JS NativeModules.AlertModule
+    }
+
+    @ReactMethod // (B) This annotation makes the method callable <span class="hljs-keyword">from</span> JS
+    fun showNativeAlert(message: String) { // (C) Method signature matches JS call
+        // (D) Execute native Android code
+        Toast.makeText(reactApplicationContext, message, Toast.LENGTH_LONG).show()
+    }
+}
+</code></pre>
+<p class="has-line-data" data-line-start="67" data-line-end="68"><strong>What happens here:</strong></p>
+<p class="has-line-data" data-line-start="69" data-line-end="70">A.  <code>override fun getName(): String { return &quot;AlertModule&quot; }:</code> This function is crucial. When React Native starts up, it asks all registered native modules for their names. This is how the <code>NativeModules</code> JavaScript object knows to create a property named <code>AlertModule</code> that points to this specific Kotlin class.</p>
+<p class="has-line-data" data-line-start="71" data-line-end="72">B.  <code>@ReactMethod:</code> This annotation is like a public signpost for the JavaScript Bridge. It tells React Native, “Hey, this <code>showNativeAlert</code> method can be called directly from JavaScript!” Without this annotation, the method would be invisible to your React Native code.</p>
+<p class="has-line-data" data-line-start="73" data-line-end="74">C.  <code>fun showNativeAlert(message: String):</code> When the message arrives from the JavaScript Bridge, the native side looks for a method with the name <code>showNativeAlert</code> and the correct argument types (a String in this case). It then executes this Kotlin function.</p>
+<p class="has-line-data" data-line-start="75" data-line-end="76">D.  <code>Toast.makeText(reactApplicationContext, message, Toast.LENGTH_LONG).show():</code> This is standard Android Kotlin code. It takes the <code>message</code> string that was passed from JavaScript and uses the <code>Toast</code> API to display a small, native alert on the Android device’s screen.</p>
+<p class="has-line-data" data-line-start="77" data-line-end="78"><strong>4. The Native Module Registration</strong></p>
+<pre><code class="has-line-data" data-line-start="80" data-line-end="100" class="language-js">class MyAlertPackage : ReactPackage {
+    override fun createNativeModules(reactContext: ReactApplicationContext): List&lt;NativeModule&gt; {
+        return listOf(AlertModule(reactContext)) // (E) Add your module to the list
+    }
+    // ... other methods
+}```
+
+
+```js
+// MainApplication.java (simplified)
+public class MainApplication extends Application implements ReactApplication {
+    @Override
+    protected List&lt;ReactPackage&gt; getPackages() {
+        List&lt;ReactPackage&gt; packages = new PackageList(this).getPackages();
+        packages.add(new MyAlertPackage()); // (F) Register your package here
+        return packages;
+    }
+    // ... other methods
+}
+</code></pre>
+<p class="has-line-data" data-line-start="101" data-line-end="102"><strong>What happens here:</strong></p>
+<p class="has-line-data" data-line-start="103" data-line-end="104">E.  <code>MyAlertPackage.createNativeModules():</code> When React Native is initializing its native modules, it calls this method on every <code>ReactPackage</code> you’ve registered. You return a list containing an instance of your <code>AlertModule</code>. This is how <code>AlertModule</code> becomes known to the React Native runtime.</p>
+<p class="has-line-data" data-line-start="106" data-line-end="107">F.  <code>MainApplication.getPackages():</code> This is the very first place where your <code>MyAlertPackage</code> gets plugged into the React Native system on Android. When the <code>MainApplication</code> (which is the entry point of your Android app) starts, it builds a list of all <code>ReactPackages</code>. By adding <code>new MyAlertPackage()</code> to this list, you ensure that <code>MyAlertPackage</code> is discovered, and in turn, your <code>AlertModule</code> is registered.</p>
+<p class="has-line-data" data-line-start="108" data-line-end="109"><strong>In Summary: The Journey</strong></p>
+<p class="has-line-data" data-line-start="110" data-line-end="111"><strong>JavaScript</strong> (App.js): You call AlertModule.showNativeAlert(&quot;…&quot;).</p>
+<p class="has-line-data" data-line-start="112" data-line-end="113"><strong>JS Bridge:</strong> Intercepts the call, packages it, and sends it to the native side.</p>
+<p class="has-line-data" data-line-start="114" data-line-end="115"><strong>Android</strong> (<code>MainApplication.java</code> -&gt; <code>MyAlertPackage.kt</code>): The app’s startup registers <code>MyAlertPackage</code>, which contains <code>AlertModule</code>.</p>
+<p class="has-line-data" data-line-start="116" data-line-end="117"><strong>Android</strong> (<code>AlertModule.kt</code>): The native side receives the message, finds the <code>showNativeAlert</code> method (thanks to <code>@ReactMethod</code> and <code>getName()</code>), and executes it.</p>
+<p class="has-line-data" data-line-start="118" data-line-end="119">Native Android System: The <code>Toast.makeText().show()</code> command displays the alert on the screen.</p>
+<p class="has-line-data" data-line-start="120" data-line-end="121">This entire process happens very quickly, making it seem like a direct call, but it’s the bridge and the module registration that make this cross-language communication possible!</p>
