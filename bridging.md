@@ -3,7 +3,7 @@ This is a Bridging Challenge [**React Native**](https://reactnative.dev) project
 # Getting started
 1. The React Native (JavaScript) Side
 
-```js
+```
 // App.js (simplified)
 import { NativeModules, TouchableOpacity, Text } from 'react-native';
 
