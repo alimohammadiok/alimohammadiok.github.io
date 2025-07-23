@@ -3,6 +3,8 @@ This is a Bridging Challenge [**React Native**](https://reactnative.dev) project
         <source src="bridgeAndroid.webm" type="video/webm">
         
         <p>Your browser does not support HTML5 video. Please try a different browser.</p>
+
+        ![alt text](bridgeAndroid.gif "Optional Title")
     </video>
 # Overview
 In the real world projects you may face some situation that you will be have to write native codes, this situation may be;
