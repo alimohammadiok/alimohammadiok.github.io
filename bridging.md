@@ -21,24 +21,27 @@ Let's see how you can handle these situations step by step:
 
 ```js
 
-import { NativeModules, TouchableOpacity, Text } from 'react-native';
+import { NativeModules, TouchableOpacity, Text, Button, View } from 'react-native';
 
 const { DeviceDataModule } = NativeModules; // (1) Get a reference to our native module
 
-const App = () => {
+const DeviceConfigScreen = () => {
   const handlePress = () => {
     // (2) Call the exposed native method
-    if (DeviceDataModule && DeviceDataModule.showNativeAlert) {
-      DeviceDataModule.showNativeAlert("Hello from Kotlin!"); // (3) Pass data to native
+    if (DeviceDataModule && DeviceDataModule.showToast) {
+      DeviceDataModule.showToast("1133456"); // (3) Pass data to native
     }
   };
 
   return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     <TouchableOpacity onPress={handlePress}> // (4) User presses button
-      <Text>Show Native Alert</Text>
+      <Button title="Show Native Alert" onPress={handlePress} />
     </TouchableOpacity>
+    </View>
   );
 };
+export default DeviceConfigScreen;
 ```
 **What happens here:**
 
@@ -52,14 +55,14 @@ This is the magic line!
 
 + The javascript code calls a method (```showNativeAlert```) on the ```DeviceDataModule``` object.
 + Since the ```DeviceDataModule``` is a __bridging Module__ , this isn't a regular js function call. Instead, React Native's __javascript bridge__ intercepts this call.
-+ The string ```"Hello from Koltin"``` is passed as an argument across the bridge.
++ The string ```"1133456"``` is passed as an argument across the bridge.
 
 
 __2. The JavaScript Bridge__
 
 This is the core communication layer between the JavaScript thread (where your React Native code runs) and the Native UI thread (where Android components and Java/Kotlin code run).
 
-When DeviceDataModule.showNativeAlert() is called in JS, the Bridge packages up the method name ("showNativeAlert") and its arguments ("Hello from Kotlin!") into a message.
+When DeviceDataModule.showToast() is called in JS, the Bridge packages up the method name ("showToast") and its arguments ("Hello from Kotlin!") into a message.
 
 This message is then sent from the JavaScript thread to the Native UI thread.
 
@@ -67,26 +70,26 @@ This message is then sent from the JavaScript thread to the Native UI thread.
 __3) Android/Koltin side - receiving the call__
 
 ```js
-// DeviceDataModule.kt (simplified)
-package com.mykotlinalertapp // Your package name
+package com.fitnessApp
 
+import android.widget.Toast
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import android.widget.Toast
 
 class DeviceDataModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     override fun getName(): String {
-        return "DeviceDataModule" // (A) This name matches the JS NativeModules.DeviceDataModule
+        return "DeviceDataModule" // This is the name exposed to JS
     }
 
-    @ReactMethod // (B) This annotation makes the method callable from JS
-    fun showNativeAlert(message: String) { // (C) Method signature matches JS call
-        // (D) Execute native Android code
-        Toast.makeText(reactApplicationContext, message, Toast.LENGTH_LONG).show()
+    @ReactMethod
+    fun showToast(message: String) {
+        Toast.makeText(reactApplicationContext,
+         "The device Id received in Koltin is: $message", Toast.LENGTH_SHORT).show()
     }
 }
+
 ```
 
 
@@ -94,31 +97,38 @@ __What happens here:__
 
 A.  ```override fun getName(): String { return "DeviceDataModule" }:``` This function is crucial. When React Native starts up, it asks all registered native modules for their names. This is how the ```NativeModules``` JavaScript object knows to create a property named ```DeviceDataModule``` that points to this specific Kotlin class.
 
-B.  ```@ReactMethod:``` This annotation is like a public signpost for the JavaScript Bridge. It tells React Native, "Hey, this ```showNativeAlert``` method can be called directly from JavaScript!" Without this annotation, the method would be invisible to your React Native code.
+B.  ```@ReactMethod:``` This annotation is like a public signpost for the JavaScript Bridge. It tells React Native, "Hey, this ```showToast``` method can be called directly from JavaScript!" Without this annotation, the method would be invisible to your React Native code.
 
-C.  ```fun showNativeAlert(message: String):``` When the message arrives from the JavaScript Bridge, the native side looks for a method with the name ```showNativeAlert``` and the correct argument types (a String in this case). It then executes this Kotlin function.
+C.  ```fun showNativeAlert(message: String):``` When the message arrives from the JavaScript Bridge, the native side looks for a method with the name ```showToast``` and the correct argument types (a String in this case). It then executes this Kotlin function.
 
-D.  ```Toast.makeText(reactApplicationContext, message, Toast.LENGTH_LONG).show():``` This is standard Android Kotlin code. It takes the ```message``` string that was passed from JavaScript and uses the ```Toast``` API to display a small, native alert on the Android device's screen.
+D.  ```Toast.makeText(reactApplicationContext,  "The device Id received in Koltin is: $message", Toast.LENGTH_LONG).show():``` This is standard Android Kotlin code. It takes the ```message``` string that was passed from JavaScript and uses the ```showToast``` API to display a small, native alert on the Android device's screen.
 
 __4. The Native Module Registration__
 
 ```js // MyDeviceDataPackage.kt (simplified)
-class MyDeviceDataPackage : ReactPackage {
+package com.fitnessApp
+
+import com.facebook.react.ReactPackage
+import com.facebook.react.bridge.NativeModule
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.uimanager.ViewManager
+
+class DeviceDataPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return listOf(DeviceDataModule(reactContext)) // (E) Add your module to the list
+        return listOf(DeviceDataModule(reactContext))
     }
-    // ... other methods
-}```
 
-
+    override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
+        return emptyList()
+    }
+}
 ```js
 // MainApplication.java (simplified)
 public class MainApplication extends Application implements ReactApplication {
     @Override
     protected List<ReactPackage> getPackages() {
         List<ReactPackage> packages = new PackageList(this).getPackages();
-        packages.add(new MyDeviceDataPackage()); // (F) Register your package here
-        return packages;
+         add(DeviceDataPackage())
     }
     // ... other methods
 }
