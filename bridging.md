@@ -7,7 +7,7 @@ This is a Bridging Challenge [**React Native**](https://reactnative.dev) project
       
     </video>
 
-      ![alt text](bridgeAndroid.gif "Optional Title")
+![alt text](bridgeAndroid.gif "Optional Title")
 # Overview
 In the real world projects you may face some situation that you will be have to write native codes, this situation may be;
 
