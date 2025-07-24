@@ -98,7 +98,7 @@ D.  ```Toast.makeText(reactApplicationContext,  "The device Id received in Kolti
 
 __4. The Native Module Registration__
 
-```js // MyDeviceDataPackage.kt (simplified)
+```js
 package com.fitnessApp
 
 import com.facebook.react.ReactPackage
@@ -116,7 +116,9 @@ class DeviceDataPackage : ReactPackage {
     }
 }
 ```js
+
 // MainApplication.java (simplified)
+```js
 public class MainApplication extends Application implements ReactApplication {
     @Override
     protected List<ReactPackage> getPackages() {
