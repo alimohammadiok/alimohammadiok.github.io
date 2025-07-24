@@ -1,11 +1,4 @@
 This is a Bridging Challenge [**React Native**](https://reactnative.dev) project.
- <video controls width="640" height="360" poster="video-thumbnail.jpg">
-        <source src="bridgeAndroid.webm" type="video/webm">
-        
-        <p>Your browser does not support HTML5 video. Please try a different browser.</p>
-
-      
-    </video>
 
 ![alt text](./bridgeAndroidSmall.gif "Optional Title")
 # Overview
