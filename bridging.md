@@ -115,10 +115,10 @@ class DeviceDataPackage : ReactPackage {
         return emptyList()
     }
 }
-```js
+```
 
-// MainApplication.java (simplified)
 ```js
+// MainApplication.java (simplified)
 public class MainApplication extends Application implements ReactApplication {
     @Override
     protected List<ReactPackage> getPackages() {
